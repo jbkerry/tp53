@@ -1,4 +1,0 @@
-Variant	SIFT_score	SIFT_term	PolyPhen_score	PolyPhen_term	Erica_term
-17_7578507_G/T	-	-	-	-	BARCODE
-17_7578424_A/C	0.0	deleterious	0.722	possibly_damaging	DELETERIOUS
-17_7578498_C/T	-	-	-	-	BARCODE

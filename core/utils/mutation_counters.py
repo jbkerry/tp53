@@ -1,11 +1,6 @@
-from collections import namedtuple
 import os
 
 import pandas as pd
-from pandas import DataFrame
-
-DirStructure = namedtuple('DirStructure', ['top_dir', 'timepoint', 'timepoint_with_letter', 'all_oligo_info',
-                                           'mutation_type'])
 
 
 def convert_mutation_file_to_dataframe(file_path):
@@ -60,5 +55,10 @@ def _get_count(file_name):
     return int(count)
 
 
-def merge_all_mutation_files(file_list):
-    pass
+def merge_dataframes(df_list):
+    merged_df = df_list.pop(0)
+    for next_df in df_list:
+        merged_df = pd.concat((merged_df, next_df), axis=0, ignore_index=True)
+
+    merged_df = merged_df.groupby(['chr', 'pos', 'ref', 'alt', 'sample', 'oligo', 'mutation'], as_index=False).sum()
+    return merged_df

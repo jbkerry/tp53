@@ -3,7 +3,7 @@ from unittest.mock import patch
 
 from pandas import DataFrame
 
-from core.utils.mutation_counters import convert_mutation_file_to_dataframe, os
+from core.utils.mutation_counters import convert_mutation_file_to_dataframe, merge_dataframes, os
 
 test_dir = os.path.dirname(os.path.realpath(__file__))
 resource_dir = os.path.join(test_dir, 'resources')
@@ -33,4 +33,12 @@ class DataframeTest(TestCase):
         self.assertTrue(expected_df.equals(df))
         mocked_split.assert_called_once()
 
+    def test_merges_dataframes(self):
+        row1 = ['17', '7578424', 'A', 'C', '48hr_C', '1A', 'DELETERIOUS', 4]
+        row2 = ['17', '7578439', 'T', 'G', '48hr_C', '1A', 'DELETERIOUS', 1]
+        headers = ['chr', 'pos', 'ref', 'alt', 'sample', 'oligo', 'mutation', 'count']
+        expected_data = dict(zip(headers, zip(row1, row2)))
+        expected_df = DataFrame(expected_data)
+        merged_df = merge_dataframes([DataFrame(dict(zip(headers, row)), index=[0]) for row in [row1, row2]])
 
+        self.assertTrue(expected_df.equals(merged_df))
