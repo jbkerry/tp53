@@ -42,3 +42,16 @@ class DataframeTest(TestCase):
         merged_df = merge_dataframes([DataFrame(dict(zip(headers, row)), index=[0]) for row in [row1, row2]])
 
         self.assertTrue(expected_df.equals(merged_df))
+
+    def test_groups_on_oligo(self):
+        row1 = ['17', '7578424', 'A', 'C', '48hr_C', '1A', 'DELETERIOUS', 4]
+        row2 = ['17', '7578439', 'T', 'G', '48hr_C', '1A', 'DELETERIOUS', 1]
+        headers = ['chr', 'pos', 'ref', 'alt', 'sample', 'oligo', 'mutation', 'count']
+        expected_data = dict(zip(['chr', 'pos', 'ref', 'alt', 'oligo', 'count'], zip(
+            ['17', '7578424', 'A', 'C', '1A', 4],
+            ['17', '7578439', 'T', 'G', '1A', 1]
+        )))
+        expected_df = DataFrame(expected_data)
+        merged_df = merge_dataframes([DataFrame(dict(zip(headers, row)), index=[0]) for row in [row1, row2]], ['oligo'])
+
+        self.assertTrue(expected_df.equals(merged_df))

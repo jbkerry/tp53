@@ -55,10 +55,15 @@ def _get_count(file_name):
     return int(count)
 
 
-def merge_dataframes(df_list):
+def merge_dataframes(df_list, group_criteria=None):
     merged_df = df_list.pop(0)
     for next_df in df_list:
         merged_df = pd.concat((merged_df, next_df), axis=0, ignore_index=True)
 
-    merged_df = merged_df.groupby(['chr', 'pos', 'ref', 'alt', 'sample', 'oligo', 'mutation'], as_index=False).sum()
+    grouping = ['chr', 'pos', 'ref', 'alt']
+    if group_criteria:
+        grouping.extend(group_criteria)
+    else:
+        grouping.extend(['sample', 'oligo', 'mutation'])
+    merged_df = merged_df.groupby(grouping, as_index=False).sum()
     return merged_df
