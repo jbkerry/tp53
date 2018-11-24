@@ -1,3 +1,4 @@
+from itertools import chain, compress
 import tempfile
 from unittest import TestCase
 from unittest.mock import patch, PropertyMock, Mock
@@ -77,9 +78,10 @@ class TestParsers(TestCase):
         mocked_second_level_subdirectories.assert_called_once()
         self.assertEqual(4, mocked_listdir.call_count)
 
+    @patch('os.path.exists')
     @patch('core.utils.directory_parsers.TopLevelDirectory.third_level_subdirectories', new_callable=PropertyMock)
     def test_returns_all_deleterious_and_non_deleterious_directories(
-            self, mocked_third_level_subdirectories, mocked_listdir):
+            self, mocked_third_level_subdirectories, mocked_path_exists, mocked_listdir):
         third_level_subdirectories = [
             os.path.join(dir_name, '48hr_final', 'vcfs_48hr_A', 'vcfs_48hr_A_oligo1G'),
             os.path.join(dir_name, '48hr_final', 'vcfs_48hr_A', 'vcfs_48hr_A_oligo2'),
@@ -90,7 +92,7 @@ class TestParsers(TestCase):
             os.path.join(dir_name, '96hr_final', 'vcfs_96hr_B', 'vcfs_96hr_B_oligo2')
         ]
         mocked_third_level_subdirectories.return_value = third_level_subdirectories
-
+        mocked_path_exists.return_value = True
         expected_directories = []
         for third_level_dir in third_level_subdirectories:
             expected_directories.extend([os.path.join(third_level_dir, mut_type) for mut_type in
@@ -99,8 +101,30 @@ class TestParsers(TestCase):
         self.assertEqual(expected_directories, top_level_directory.mutation_subdirectories)
         mocked_third_level_subdirectories.assert_called_once()
 
-        expected_directories.pop()
-        #self.assertRaises(IOError, top_level_directory.mutation_subdirectories)
+    @patch('os.path.exists')
+    @patch('core.utils.directory_parsers.TopLevelDirectory.third_level_subdirectories', new_callable=PropertyMock)
+    def test_does_not_return_non_existing_deleterious_directories(
+            self, mocked_third_level_subdirectories, mocked_path_exists, mocked_listdir):
+        third_level_subdirectories = [
+            os.path.join(dir_name, '48hr_final', 'vcfs_48hr_A', 'vcfs_48hr_A_oligo1G'),
+            os.path.join(dir_name, '12d_final2', 'vcfs_12d_C', 'vcfs_12d_C_oligo3only'),
+            os.path.join(dir_name, '96hr_final', 'vcfs_96hr_B', 'vcfs_96hr_B_oligo2')
+        ]
+        mocked_third_level_subdirectories.return_value = third_level_subdirectories
+
+        expected_directories = []
+        del_non_del_exists = ((False, True), (False, False), (True, True))
+        for dels_exist, third_level_dir in zip(del_non_del_exists, third_level_subdirectories):
+            expected_directories.extend(list(compress(
+                [os.path.join(third_level_dir, mut_type) for mut_type in ('DELETERIOUS', 'NON-DELETERIOUS')],
+                dels_exist
+            )))
+
+        mocked_path_exists.side_effect = list(chain(*del_non_del_exists))
+
+        self.assertEqual(expected_directories, top_level_directory.mutation_subdirectories)
+        mocked_third_level_subdirectories.assert_called_once()
+
 
     @patch('core.utils.directory_parsers.TopLevelDirectory.mutation_subdirectories', new_callable=PropertyMock)
     def test_returns_all_mutation_files(

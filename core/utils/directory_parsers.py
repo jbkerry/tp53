@@ -45,16 +45,10 @@ class TopLevelDirectory:
     @property
     def mutation_subdirectories(self):
         mutation_subdirs = [os.path.join(third_level_subdir, mutation) for third_level_subdir in
-                            self.third_level_subdirectories for mutation in ('DELETERIOUS', 'NON-DELETERIOUS')]
-        # self._check_directories_exist(mutation_subdirs)
+                            self.third_level_subdirectories for mutation in ('DELETERIOUS', 'NON-DELETERIOUS')
+                            if os.path.exists(os.path.join(third_level_subdir, mutation))]
 
         return mutation_subdirs
-
-    # @staticmethod
-    # def _check_directories_exist(dir_list):
-    #     for dir in dir_list:
-    #         if not os.path.exists(dir):
-    #             raise IOError
 
     @property
     def mutation_files(self):
